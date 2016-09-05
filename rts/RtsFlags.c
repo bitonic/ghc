@@ -142,6 +142,7 @@ void initRtsFlagsDefaults(void)
     RtsFlags.GcFlags.minOldGenSize      = (1024 * 1024)       / BLOCK_SIZE;
     RtsFlags.GcFlags.maxHeapSize        = 0;    /* off by default */
     RtsFlags.GcFlags.heapSizeSuggestion = 0;    /* none */
+    RtsFlags.GcFlags.heapSpaceStartAddress = 0; /* will be picked by the RTS */
     RtsFlags.GcFlags.heapSizeSuggestionAuto = rtsFalse;
     RtsFlags.GcFlags.pcFreeHeap         = 3;    /* 3% */
     RtsFlags.GcFlags.oldGenFactor       = 2;
