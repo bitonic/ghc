@@ -433,8 +433,8 @@ static void* heap_base = NULL;
 void *osReserveHeapMemory (void *startAddress, W_ *len)
 {
     if (startAddress) {
-        errorBelch("osReserveHeapMemory: specifying a custom start address \
-                    is not supported on windows.")
+        errorBelch(
+            "specifying a custom start address is not supported on windows.")
     }
 
     void *start;
