@@ -34,16 +34,18 @@ typedef struct _GC_FLAGS {
 #define SUMMARY_GC_STATS 3
 #define VERBOSE_GC_STATS 4
 
-    nat     maxStkSize;         /* in *words* */
-    nat     initialStkSize;     /* in *words* */
-    nat     stkChunkSize;       /* in *words* */
-    nat     stkChunkBufferSize; /* in *words* */
+    uint32_t     maxStkSize;         /* in *words* */
+    uint32_t     initialStkSize;     /* in *words* */
+    uint32_t     stkChunkSize;       /* in *words* */
+    uint32_t     stkChunkBufferSize; /* in *words* */
 
-    nat	    maxHeapSize;        /* in *blocks* */
-    nat     minAllocAreaSize;   /* in *blocks* */
-    nat     nurseryChunkSize;   /* in *blocks* */
-    nat     minOldGenSize;      /* in *blocks* */
-    nat     heapSizeSuggestion; /* in *blocks* */
+    uint32_t     maxHeapSize;        /* in *blocks* */
+    uint32_t     minAllocAreaSize;   /* in *blocks* */
+    uint32_t     nurseryChunkSize;   /* in *blocks* */
+    uint32_t     minOldGenSize;      /* in *blocks* */
+    uint32_t     heapSizeSuggestion; /* in *blocks* */
+    uint64_t     heapSpaceStartAddress; /* Where to start the search for a
+                                         suitable address for the heap space */
     rtsBool heapSizeSuggestionAuto;
     double  oldGenFactor;
     double  pcFreeHeap;

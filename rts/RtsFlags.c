@@ -270,14 +270,17 @@ usage_text[] = {
 "  -kc<size> Sets the stack chunk size (default 32k)",
 "  -kb<size> Sets the stack chunk buffer size (default 1k)",
 "",
-"  -A<size> Sets the minimum allocation area size (default 512k) Egs: -A1m -A10k",
-"  -n<size> Allocation area chunk size (0 = disabled, default: 0)",
-"  -O<size> Sets the minimum size of the old generation (default 1M)",
-"  -M<size> Sets the maximum heap size (default unlimited)  Egs: -M256k -M1G",
-"  -H<size> Sets the minimum heap size (default 0M)   Egs: -H24m  -H1G",
-"  -m<n>    Minimum % of heap which must be available (default 3%)",
-"  -G<n>    Number of generations (default: 2)",
-"  -c<n>    Use in-place compaction instead of copying in the oldest generation",
+"  -A<size>  Sets the minimum allocation area size (default 512k) Egs: -A1m -A10k",
+"  -n<size>  Allocation area chunk size (0 = disabled, default: 0)",
+"  -O<size>  Sets the minimum size of the old generation (default 1M)",
+"  -M<size>  Sets the maximum heap size (default unlimited)  Egs: -M256k -M1G",
+"  -H<size>  Sets the minimum heap size (default 0M)   Egs: -H24m  -H1G",
+"  -J<addr>  Sets the address from which a suitable start for the heap memory",
+"            will be searched from. This is useful if the default address",
+"            clashes with some third-party library.",
+"  -m<n>     Minimum % of heap which must be available (default 3%)",
+"  -G<n>     Number of generations (default: 2)",
+"  -c<n>     Use in-place compaction instead of copying in the oldest generation",
 "           when live data is at least <n>% of the maximum heap size set with",
 "           -M (default: 30%)",
 "  -c       Use in-place compaction for all oldest generation collections",
@@ -760,7 +763,7 @@ error = rtsTrue;
                   OPTION_UNSAFE;
                   // minimum two blocks in the nursery, so that we have one to
                   // grab for allocate().
-                  RtsFlags.GcFlags.minAllocAreaSize
+                      RtsFlags.GcFlags.minAllocAreaSize
                       = decodeSize(rts_argv[arg], 2, 2*BLOCK_SIZE, HS_INT_MAX)
                            / BLOCK_SIZE;
                   break;
@@ -902,6 +905,12 @@ error = rtsTrue;
                       RtsFlags.GcFlags.heapSizeSuggestion =
                           (nat)(decodeSize(rts_argv[arg], 2, BLOCK_SIZE, HS_WORD_MAX) / BLOCK_SIZE);
                   }
+                  break;
+
+              case 'J':
+                  OPTION_UNSAFE;
+                  RtsFlags.GcFlags.heapSpaceStartAddress =
+                      strtoul(rts_argv[arg]+2, NULL, 0);
                   break;
 
               case 'O':
