@@ -430,8 +430,12 @@ void setExecutable (void *p, W_ len, rtsBool exec)
 
 static void* heap_base = NULL;
 
-void *osReserveHeapMemory (W_ *len)
+void *osReserveHeapMemory (void *startAddress, W_ *len)
 {
+    if (startAddress) {
+        errorBelch("osReserveHeapMemory: specifying a custom start address is not supported on windows.")
+    }
+
     void *start;
 
     heap_base = VirtualAlloc(NULL, *len + MBLOCK_SIZE,

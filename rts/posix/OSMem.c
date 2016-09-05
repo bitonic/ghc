@@ -450,7 +450,7 @@ osTryReserveHeapMemory (W_ len, void *hint)
     return start;
 }
 
-void *osReserveHeapMemory(W_ *len)
+void *osReserveHeapMemory(void *startAddressPtr, W_ *len)
 {
     int attempt;
     void *at;
@@ -472,6 +472,15 @@ void *osReserveHeapMemory(W_ *len)
 
     */
 
+    W_ minimumAddress = (W_)8 * (1 << 30);
+    W_ startAddress = minimumAddress;
+    if (startAddressPtr) {
+        startAddress = (W_)startAddressPtr;
+    }
+    if (startAddress < minimumAddress) {
+        errorBelch("osReserveHeapMemory: Address %p is lower than minimum address %p", (void*)startAddress, (void*)minimumAddress);
+    }
+
     attempt = 0;
     while (1) {
         if (*len < MBLOCK_SIZE) {
@@ -479,7 +488,7 @@ void *osReserveHeapMemory(W_ *len)
             barf("osReserveHeapMemory: Failed to allocate heap storage");
         }
 
-        void *hint = (void*)((W_)8 * (1 << 30) + attempt * BLOCK_SIZE);
+        void *hint = (void*)(startAddress + attempt * BLOCK_SIZE);
         at = osTryReserveHeapMemory(*len, hint);
         if (at == NULL) {
             // This means that mmap failed which we take to mean that we asked
@@ -487,7 +496,7 @@ void *osReserveHeapMemory(W_ *len)
             // limits. In this case we reduce our allocation request by a factor
             // of two and try again.
             *len /= 2;
-        } else if ((W_)at >= ((W_)8 * (1 << 30))) {
+        } else if ((W_)at >= minimumAddress) {
             // Success! We were given a block of memory starting above the 8 GB
             // mark, which is what we were looking for.
             break;

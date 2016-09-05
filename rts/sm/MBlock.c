@@ -662,7 +662,7 @@ initMBlocks(void)
 #else
         size = (W_)1 << 40; // 1 TByte
 #endif
-        void *addr = osReserveHeapMemory(&size);
+        void *addr = osReserveHeapMemory(NULL, &size);
 
         mblock_address_space.begin = (W_)addr;
         mblock_address_space.end = (W_)addr + size;
