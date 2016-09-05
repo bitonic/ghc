@@ -478,7 +478,9 @@ void *osReserveHeapMemory(void *startAddressPtr, W_ *len)
         startAddress = (W_)startAddressPtr;
     }
     if (startAddress < minimumAddress) {
-        errorBelch("osReserveHeapMemory: Address %p is lower than minimum address %p", (void*)startAddress, (void*)minimumAddress);
+        errorBelch(
+            "osReserveHeapMemory: Address %p is lower than minimum address %p",
+            (void*)startAddress, (void*)minimumAddress);
     }
 
     attempt = 0;
