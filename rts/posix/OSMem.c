@@ -456,10 +456,12 @@ void *osReserveHeapMemory(void *startAddressPtr, W_ *len)
     void *at;
 
     /* We want to ensure the heap starts at least 8 GB inside the address space,
-       to make sure that any dynamically loaded code will be close enough to the
-       original code so that short relocations will work. This is in particular
-       important on Darwin/Mach-O, because object files not compiled as shared
-       libraries are position independent but cannot be loaded about 4GB.
+       since we want to reserve the address space below that address for code.
+       Specifically, we need to make sure that any dynamically loaded code will
+       be close enough to the original code so that short relocations will work.
+       This is in particular important on Darwin/Mach-O, because object files
+       not compiled as shared libraries are position independent but cannot be
+       loaded above 4GB.
 
        We do so with a hint to the mmap, and we verify the OS satisfied our
        hint. We loop, shifting our hint by 1 BLOCK_SIZE every time, in case
