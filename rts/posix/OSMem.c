@@ -475,7 +475,9 @@ void *osReserveHeapMemory(void *startAddressPtr, W_ *len)
     */
 
     W_ minimumAddress = (W_)8 * (1 << 30);
-    W_ startAddress = minimumAddress;
+    // We don't use minimumAddress (0x200000000) as default because we know
+    // it can clash with third-party libraries. See ticket #12573.
+    W_ startAddress = 0x4200000000;
     if (startAddressPtr) {
         startAddress = (W_)startAddressPtr;
     }
