@@ -513,6 +513,7 @@ void *osReserveHeapMemory(void *startAddressPtr, W_ *len)
                 sysErrorBelch("unable to release reserved heap");
             }
         }
+        attempt++;
     }
 
     return at;
