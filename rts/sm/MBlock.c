@@ -566,7 +566,7 @@ void releaseFreeMemory(void)
 void *
 getMBlock(void)
 {
-  return getMBlocks(1);
+    return getMBlocks(1);
 }
 
 // The external interface: allocate 'n' mblocks, and return the
@@ -645,7 +645,11 @@ initMBlocks(void)
 #else
         size = (W_)1 << 40; // 1 TByte
 #endif
-        void *addr = osReserveHeapMemory(&size);
+        void *startAddress = NULL;
+        if (RtsFlags.GcFlags.heapBase) {
+            startAddress = (void*) RtsFlags.GcFlags.heapBase;
+        }
+        void *addr = osReserveHeapMemory(startAddress, &size);
 
         mblock_address_space.begin = (W_)addr;
         mblock_address_space.end = (W_)addr + size;

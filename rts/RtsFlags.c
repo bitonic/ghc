@@ -139,7 +139,6 @@ void initRtsFlagsDefaults(void)
     RtsFlags.GcFlags.minOldGenSize      = (1024 * 1024)       / BLOCK_SIZE;
     RtsFlags.GcFlags.maxHeapSize        = 0;    /* off by default */
     RtsFlags.GcFlags.heapSizeSuggestion = 0;    /* none */
-    RtsFlags.GcFlags.heapSpaceStartAddress = 0; /* will be picked by the RTS */
     RtsFlags.GcFlags.heapSizeSuggestionAuto = rtsFalse;
     RtsFlags.GcFlags.pcFreeHeap         = 3;    /* 3% */
     RtsFlags.GcFlags.oldGenFactor       = 2;
@@ -276,7 +275,7 @@ usage_text[] = {
 "  -O<size>  Sets the minimum size of the old generation (default 1M)",
 "  -M<size>  Sets the maximum heap size (default unlimited)  Egs: -M256k -M1G",
 "  -H<size>  Sets the minimum heap size (default 0M)   Egs: -H24m  -H1G",
-"  -J<addr>  Sets the address from which a suitable start for the heap memory",
+"  -xb<addr> Sets the address from which a suitable start for the heap memory",
 "            will be searched from. This is useful if the default address",
 "            clashes with some third-party library.",
 "  -m<n>     Minimum % of heap which must be available (default 3%)",
@@ -906,12 +905,6 @@ error = rtsTrue;
                       RtsFlags.GcFlags.heapSizeSuggestion =
                           (nat)(decodeSize(rts_argv[arg], 2, BLOCK_SIZE, HS_WORD_MAX) / BLOCK_SIZE);
                   }
-                  break;
-
-              case 'J':
-                  OPTION_UNSAFE;
-                  RtsFlags.GcFlags.heapSpaceStartAddress =
-                      strtoul(rts_argv[arg]+2, NULL, 0);
                   break;
 
               case 'O':
