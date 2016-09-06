@@ -432,22 +432,18 @@ static void* heap_base = NULL;
 
 void *osReserveHeapMemory (void *startAddress, W_ *len)
 {
-    if (startAddress) {
-        errorBelch(
-            "specifying a custom start address is not supported on windows.")
-    }
-
     void *start;
 
-    heap_base = VirtualAlloc(NULL, *len + MBLOCK_SIZE,
+    heap_base = VirtualAlloc(startAddress, *len + MBLOCK_SIZE,
                               MEM_RESERVE, PAGE_READWRITE);
     if (heap_base == NULL) {
         if (GetLastError() == ERROR_NOT_ENOUGH_MEMORY) {
             errorBelch("out of memory");
         } else {
             sysErrorBelch(
-                "osReserveHeapMemory: VirtualAlloc MEM_RESERVE %llu bytes failed",
-                len + MBLOCK_SIZE);
+                "osReserveHeapMemory: VirtualAlloc MEM_RESERVE %llu bytes \
+                at address %p bytes failed",
+                len + MBLOCK_SIZE, startAddress);
         }
         stg_exit(EXIT_FAILURE);
     }
