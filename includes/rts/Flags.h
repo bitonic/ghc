@@ -45,8 +45,6 @@ typedef struct _GC_FLAGS {
     uint32_t     nurseryChunkSize;   /* in *blocks* */
     uint32_t     minOldGenSize;      /* in *blocks* */
     uint32_t     heapSizeSuggestion; /* in *blocks* */
-    uint64_t     heapSpaceStartAddress; /* Where to start the search for a
-                                         suitable address for the heap space */
     rtsBool heapSizeSuggestionAuto;
     double  oldGenFactor;
     double  pcFreeHeap;

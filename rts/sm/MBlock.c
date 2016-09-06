@@ -663,8 +663,8 @@ initMBlocks(void)
         size = (W_)1 << 40; // 1 TByte
 #endif
         void *startAddress = NULL;
-        if (RtsFlags.GcFlags.heapSpaceStartAddress) {
-            startAddress = (void*) RtsFlags.GcFlags.heapSpaceStartAddress;
+        if (RtsFlags.GcFlags.heapBase) {
+            startAddress = (void*) RtsFlags.GcFlags.heapBase;
         }
         void *addr = osReserveHeapMemory(startAddress, &size);
 
