@@ -60,7 +60,7 @@ roundUpToPage (size_t x)
 // This function is called once when the block allocator is initialized.
 //
 // startAddress must be greater or equal than 8 * (1 << 30), and can be
-// NULL, in which case 8 * (1 << 30) will be used.
+// NULL, in which case a default will be picked by the RTS.
 void *osReserveHeapMemory(void *startAddress, W_ *len);
 
 // Commit (allocate memory for) a piece of address space, which must
