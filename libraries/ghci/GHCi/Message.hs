@@ -20,6 +20,7 @@ import GHCi.TH.Binary ()
 import GHCi.BreakArray
 
 import GHC.LanguageExtensions
+import GHC.ForeignSrcLang
 import Control.Concurrent
 import Control.Exception
 import Data.Binary
@@ -204,12 +205,97 @@ data Message a where
 
   -- Template Haskell return values
 
+<<<<<<< HEAD
   -- | RunTH finished successfully; return value follows
   QDone :: Message ()
   -- | RunTH threw an exception
   QException :: String -> Message ()
   -- | RunTH called 'fail'
   QFail :: String -> Message ()
+=======
+instance Binary a => Binary (QResult a)
+
+
+-- | Messages sent back to GHC from GHCi.TH, to implement the methods
+-- of 'Quasi'.  For an overview of how TH works with Remote GHCi, see
+-- Note [Remote Template Haskell] in GHCi.TH.
+data THMessage a where
+  NewName :: String -> THMessage (THResult TH.Name)
+  Report :: Bool -> String -> THMessage (THResult ())
+  LookupName :: Bool -> String -> THMessage (THResult (Maybe TH.Name))
+  Reify :: TH.Name -> THMessage (THResult TH.Info)
+  ReifyFixity :: TH.Name -> THMessage (THResult (Maybe TH.Fixity))
+  ReifyInstances :: TH.Name -> [TH.Type] -> THMessage (THResult [TH.Dec])
+  ReifyRoles :: TH.Name -> THMessage (THResult [TH.Role])
+  ReifyAnnotations :: TH.AnnLookup -> TypeRep
+    -> THMessage (THResult [ByteString])
+  ReifyModule :: TH.Module -> THMessage (THResult TH.ModuleInfo)
+  ReifyConStrictness :: TH.Name -> THMessage (THResult [TH.DecidedStrictness])
+
+  AddDependentFile :: FilePath -> THMessage (THResult ())
+  AddModFinalizer :: RemoteRef (TH.Q ()) -> THMessage (THResult ())
+  AddTopDecls :: [TH.Dec] -> THMessage (THResult ())
+  AddForeignFile :: ForeignSrcLang -> String -> THMessage (THResult ())
+  IsExtEnabled :: Extension -> THMessage (THResult Bool)
+  ExtsEnabled :: THMessage (THResult [Extension])
+
+  StartRecover :: THMessage ()
+  EndRecover :: Bool -> THMessage ()
+
+  -- | Indicates that this RunTH is finished, and the next message
+  -- will be the result of RunTH (a QResult).
+  RunTHDone :: THMessage ()
+
+deriving instance Show (THMessage a)
+
+data THMsg = forall a . (Binary a, Show a) => THMsg (THMessage a)
+
+getTHMessage :: Get THMsg
+getTHMessage = do
+  b <- getWord8
+  case b of
+    0  -> THMsg <$> NewName <$> get
+    1  -> THMsg <$> (Report <$> get <*> get)
+    2  -> THMsg <$> (LookupName <$> get <*> get)
+    3  -> THMsg <$> Reify <$> get
+    4  -> THMsg <$> ReifyFixity <$> get
+    5  -> THMsg <$> (ReifyInstances <$> get <*> get)
+    6  -> THMsg <$> ReifyRoles <$> get
+    7  -> THMsg <$> (ReifyAnnotations <$> get <*> get)
+    8  -> THMsg <$> ReifyModule <$> get
+    9  -> THMsg <$> ReifyConStrictness <$> get
+    10 -> THMsg <$> AddDependentFile <$> get
+    11 -> THMsg <$> AddTopDecls <$> get
+    12 -> THMsg <$> (IsExtEnabled <$> get)
+    13 -> THMsg <$> return ExtsEnabled
+    14 -> THMsg <$> return StartRecover
+    15 -> THMsg <$> EndRecover <$> get
+    16 -> return (THMsg RunTHDone)
+    17 -> THMsg <$> AddModFinalizer <$> get
+    _  -> THMsg <$> (AddForeignFile <$> get <*> get)
+
+putTHMessage :: THMessage a -> Put
+putTHMessage m = case m of
+  NewName a                   -> putWord8 0  >> put a
+  Report a b                  -> putWord8 1  >> put a >> put b
+  LookupName a b              -> putWord8 2  >> put a >> put b
+  Reify a                     -> putWord8 3  >> put a
+  ReifyFixity a               -> putWord8 4  >> put a
+  ReifyInstances a b          -> putWord8 5  >> put a >> put b
+  ReifyRoles a                -> putWord8 6  >> put a
+  ReifyAnnotations a b        -> putWord8 7  >> put a >> put b
+  ReifyModule a               -> putWord8 8  >> put a
+  ReifyConStrictness a        -> putWord8 9  >> put a
+  AddDependentFile a          -> putWord8 10 >> put a
+  AddTopDecls a               -> putWord8 11 >> put a
+  IsExtEnabled a              -> putWord8 12 >> put a
+  ExtsEnabled                 -> putWord8 13
+  StartRecover                -> putWord8 14
+  EndRecover a                -> putWord8 15 >> put a
+  RunTHDone                   -> putWord8 16
+  AddModFinalizer a           -> putWord8 17 >> put a
+  AddForeignFile lang a       -> putWord8 18 >> put lang >> put a
+>>>>>>> 0c500dd... Implement addCStub in template-haskell.
 
 deriving instance Show (Message a)
 

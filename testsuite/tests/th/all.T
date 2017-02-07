@@ -78,6 +78,14 @@ test('TH_reifyDecl2', normal, compile, ['-v0'])
 test('TH_reifyLocalDefs', normal, compile, ['-v0'])
 test('TH_reifyLocalDefs2', normal, compile, ['-v0'])
 
+
+# Checks if the error output of an appended command has the given pattern.
+def error_has(pattern):
+    swap12 = '3>&1 1>&2 2>&3 3>&-' # Swap file descriptors 1 and 2.
+    # pipefail: make a pipe fail if any of the commands fails
+    # the following fails only if both the command fails and the pattern is found
+    return('bash -o pipefail -c \'! (! "$@" {swap12}) | grep {pattern} {swap12} &> /dev/null\' --'.format(**locals()))
+
 test('TH_reifyMkName', normal, compile, ['-v0'])
 
 test('TH_reifyInstances', normal, compile, ['-v0'])
@@ -422,3 +430,4 @@ test('T12788', extra_clean(['T12788_Lib.hi', 'T12788_Lib.o']),
                multimod_compile_fail,
                ['T12788.hs', '-v0 ' + config.ghc_th_way_flags])
 test('T12993', normal, multimod_compile, ['T12993.hs', '-v0'])
+test('T13366', normal, compile_and_run, ['-lstdc++ -v0'])
