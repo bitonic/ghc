@@ -92,7 +92,10 @@ class Monad m => Quasi m where
 
   qAddTopDecls :: [Dec] -> m ()
 
-  qAddCStub :: String -> m ()
+  qAddCFile :: String -> m ()
+  qAddCxxFile :: String -> m ()
+  qAddObjcFile :: String -> m ()
+  qAddObjcxxFile :: String -> m ()
 
   qAddModFinalizer :: Q () -> m ()
 
@@ -133,7 +136,10 @@ instance Quasi IO where
   qRecover _ _          = badIO "recover" -- Maybe we could fix this?
   qAddDependentFile _   = badIO "addDependentFile"
   qAddTopDecls _        = badIO "addTopDecls"
-  qAddCStub    _        = badIO "addCStub"
+  qAddCFile    _        = badIO "addCFile"
+  qAddCxxFile    _      = badIO "addCxxFile"
+  qAddObjcFile    _     = badIO "addObjcFile"
+  qAddObjcxxFile    _   = badIO "addObjcxxFile"
   qAddModFinalizer _    = badIO "addModFinalizer"
   qGetQ                 = badIO "getQ"
   qPutQ _               = badIO "putQ"
@@ -459,24 +465,37 @@ addDependentFile fp = Q (qAddDependentFile fp)
 addTopDecls :: [Dec] -> Q ()
 addTopDecls ds = Q (qAddTopDecls ds)
 
--- | Add an additional C stub. The added stub will be built and included in the
--- object file of the current module.
+-- | Emit a C file which will be compiled and linked to the object for
+-- the current module. The flags passed as part of -opt-c will be also
+-- applied to the gcc invocation that will compile files resulting from
+-- invocations of 'addCFile', 'addCxxFile',
+-- 'addObjcFile', and 'addObjcxxFile'.
 --
--- Compilation errors in the given string are reported next to the line of the
--- enclosing splice.
---
--- The accuracy of the error location can be improved by adding
--- #line pragmas in the argument. e.g.
+-- To get better errors, it is reccomended to use #line pragmas when
+-- emitting C files, e.g.
 --
 -- > {-# LANGUAGE CPP #-}
 -- > ...
--- > addCStub $ unlines
+-- > addCFile $ unlines
 -- >   [ "#line " ++ show (__LINE__ + 1) ++ " " ++ show __FILE__
 -- >   , ...
 -- >   ]
---
-addCStub :: String -> Q ()
-addCStub str = Q (qAddCStub str)
+addCFile :: String -> Q ()
+addCFile str = Q (qAddCFile str)
+
+-- | Same as 'addCFile', but the file will be compiled as C++. Note
+-- that this means that @extern "C"@ directives must be used if
+-- you want to use symbols present in the emitted files from Haskell.
+addCxxFile :: String -> Q ()
+addCxxFile str = Q (qAddCxxFile str)
+
+-- | Same as 'addCFile', but the file will be compiled as ObjC.
+addObjcFile :: String -> Q ()
+addObjcFile str = Q (qAddObjcFile str)
+
+-- | Same as 'addCFile', but the file will be compiled as ObjC++.
+addObjcxxFile :: String -> Q ()
+addObjcxxFile str = Q (qAddObjcxxFile str)
 
 -- | Add a finalizer that will run in the Q monad after the current module has
 -- been type checked. This only makes sense when run within a top-level splice.
@@ -521,7 +540,10 @@ instance Quasi Q where
   qRunIO              = runIO
   qAddDependentFile   = addDependentFile
   qAddTopDecls        = addTopDecls
-  qAddCStub           = addCStub
+  qAddCFile           = addCFile
+  qAddCxxFile         = addCxxFile
+  qAddObjcFile        = addObjcFile
+  qAddObjcxxFile      = addObjcxxFile
   qAddModFinalizer    = addModFinalizer
   qGetQ               = getQ
   qPutQ               = putQ

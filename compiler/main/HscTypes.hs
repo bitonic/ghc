@@ -1222,6 +1222,7 @@ data ModGuts
                                          -- See Note [Overall plumbing for rules] in Rules.hs
         mg_binds     :: !CoreProgram,    -- ^ Bindings for this module
         mg_foreign   :: !ForeignStubs,   -- ^ Foreign exports declared in this module
+        mg_gcc_files :: ![(Phase, String)],  -- ^ Files to be compiled with GCC, plus phase to compile them.
         mg_warns     :: !Warnings,       -- ^ Warnings declared in the module
         mg_anns      :: [Annotation],    -- ^ Annotations declared in this module
         mg_complete_sigs :: [CompleteMatch], -- ^ Complete Matches
@@ -1281,6 +1282,7 @@ data CgGuts
                 -- as part of the code-gen of tycons
 
         cg_foreign   :: !ForeignStubs,   -- ^ Foreign export stubs
+        cg_gcc_files :: ![(Phase, String)],
         cg_dep_pkgs  :: ![InstalledUnitId], -- ^ Dependent packages, used to
                                             -- generate #includes for C code gen
         cg_hpc_info  :: !HpcInfo,           -- ^ Program coverage tick box information

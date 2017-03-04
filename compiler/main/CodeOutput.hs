@@ -26,6 +26,7 @@ import Config
 import SysTools
 import Stream           (Stream)
 import qualified Stream
+import DriverPhases (Phase(..))
 
 import ErrUtils
 import Outputable
@@ -36,6 +37,7 @@ import Control.Exception
 import System.Directory
 import System.FilePath
 import System.IO
+import Control.Monad (forM)
 
 {-
 ************************************************************************
@@ -50,12 +52,14 @@ codeOutput :: DynFlags
            -> FilePath
            -> ModLocation
            -> ForeignStubs
+           -> [(Phase, String)] -- ^ additional files to be compiled with gcc
            -> [InstalledUnitId]
            -> Stream IO RawCmmGroup ()                       -- Compiled C--
            -> IO (FilePath,
-                  (Bool{-stub_h_exists-}, Maybe FilePath{-stub_c_exists-}))
+                  (Bool{-stub_h_exists-}, Maybe FilePath{-stub_c_exists-}),
+                  [(Phase, FilePath)]{-gcc_files-})
 
-codeOutput dflags this_mod filenm location foreign_stubs pkg_deps cmm_stream
+codeOutput dflags this_mod filenm location foreign_stubs gcc_files pkg_deps cmm_stream
   =
     do  {
         -- Lint each CmmGroup as it goes past
@@ -82,6 +86,10 @@ codeOutput dflags this_mod filenm location foreign_stubs pkg_deps cmm_stream
                 }
 
         ; stubs_exist <- outputForeignStubs dflags this_mod location foreign_stubs
+        ; gcc_files <- forM gcc_files $ \(phase, file_contents) -> do {
+            fp <- outputGccFile dflags phase file_contents;
+            return (phase, fp);
+            }
         ; case hscTarget dflags of {
              HscAsm         -> outputAsm dflags this_mod location filenm
                                          linted_cmm_stream;
@@ -90,7 +98,7 @@ codeOutput dflags this_mod filenm location foreign_stubs pkg_deps cmm_stream
              HscInterpreted -> panic "codeOutput: HscInterpreted";
              HscNothing     -> panic "codeOutput: HscNothing"
           }
-        ; return (filenm, stubs_exist)
+        ; return (filenm, stubs_exist, gcc_files)
         }
 
 doOutput :: String -> (Handle -> IO a) -> IO a
@@ -258,3 +266,16 @@ outputForeignStubs_help _fname ""      _header _footer = return False
 outputForeignStubs_help fname doc_str header footer
    = do writeFile fname (header ++ doc_str ++ '\n':footer ++ "\n")
         return True
+
+outputGccFile :: DynFlags -> Phase -> String -> IO FilePath
+outputGccFile dflags phase file_contents
+ = do
+   extension <- case phase of
+     Cc -> return "c"
+     Ccxx -> return "cpp"
+     Cobjc -> return "m"
+     Cobjcxx -> return "mm"
+     _ -> panic ("outputGccFile: bad phase " ++ show phase)
+   fp <- newTempName dflags extension
+   writeFile fp file_contents
+   return fp

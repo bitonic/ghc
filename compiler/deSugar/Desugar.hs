@@ -59,6 +59,7 @@ import Coverage
 import Util
 import MonadUtils
 import OrdList
+import DriverPhases (Phase(..))
 
 import Data.List
 import Data.IORef
@@ -97,7 +98,10 @@ deSugar hsc_env
                             tcg_imp_specs    = imp_specs,
                             tcg_dependent_files = dependent_files,
                             tcg_ev_binds     = ev_binds,
-                            tcg_th_cstubs    = th_cstubs_var,
+                            tcg_th_cfiles    = th_cfiles_var,
+                            tcg_th_cxxfiles  = th_cxxfiles_var,
+                            tcg_th_objcfiles = th_objcfiles_var,
+                            tcg_th_objcxxfiles = th_objcxxfiles_var,
                             tcg_fords        = fords,
                             tcg_rules        = rules,
                             tcg_vects        = vects,
@@ -182,8 +186,15 @@ deSugar hsc_env
         -- past desugaring. See Note [Identity versus semantic module].
         ; MASSERT( id_mod == mod )
 
-        ; cstubs <- readIORef th_cstubs_var
-        ; let ds_fords' = foldl' appendStubC ds_fords (map text cstubs)
+        ; cfiles <- readIORef th_cfiles_var
+        ; cxxfiles <- readIORef th_cxxfiles_var
+        ; objcfiles <- readIORef th_objcfiles_var
+        ; objcxxfiles <- readIORef th_objcxxfiles_var
+        ; let gcc_files =
+                map ((,) Cc) cfiles ++
+                map ((,) Ccxx) cxxfiles ++
+                map ((,) Cobjc) objcfiles ++
+                map ((,) Cobjcxx) objcxxfiles
 
         ; let mod_guts = ModGuts {
                 mg_module       = mod,
@@ -205,7 +216,8 @@ deSugar hsc_env
                 mg_patsyns      = patsyns,
                 mg_rules        = ds_rules_for_imps,
                 mg_binds        = ds_binds,
-                mg_foreign      = ds_fords',
+                mg_foreign      = ds_fords,
+                mg_gcc_files    = gcc_files,
                 mg_hpc_info     = ds_hpc_info,
                 mg_modBreaks    = modBreaks,
                 mg_vect_decls   = ds_vects,

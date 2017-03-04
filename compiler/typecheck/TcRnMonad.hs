@@ -217,7 +217,10 @@ initTc hsc_env hsc_src keep_rn_syntax mod loc do_this
         dependent_files_var <- newIORef [] ;
         static_wc_var       <- newIORef emptyWC ;
         th_topdecls_var      <- newIORef [] ;
-        th_cstubs_var        <- newIORef [] ;
+        th_cfiles_var        <- newIORef [] ;
+        th_cxxfiles_var      <- newIORef [] ;
+        th_objcfiles_var     <- newIORef [] ;
+        th_objcxxfiles_var   <- newIORef [] ;
         th_topnames_var      <- newIORef emptyNameSet ;
         th_modfinalizers_var <- newIORef [] ;
         th_state_var         <- newIORef Map.empty ;
@@ -232,7 +235,10 @@ initTc hsc_env hsc_src keep_rn_syntax mod loc do_this
 
              gbl_env = TcGblEnv {
                 tcg_th_topdecls      = th_topdecls_var,
-                tcg_th_cstubs        = th_cstubs_var,
+                tcg_th_cfiles        = th_cfiles_var,
+                tcg_th_cxxfiles      = th_cxxfiles_var,
+                tcg_th_objcfiles     = th_objcfiles_var,
+                tcg_th_objcxxfiles   = th_objcxxfiles_var,
                 tcg_th_topnames      = th_topnames_var,
                 tcg_th_modfinalizers = th_modfinalizers_var,
                 tcg_th_state         = th_state_var,

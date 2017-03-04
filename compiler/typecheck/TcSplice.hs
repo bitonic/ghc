@@ -909,16 +909,10 @@ instance TH.Quasi TcM where
           hang (text "The binder" <+> quotes (ppr name) <+> ptext (sLit "is not a NameU."))
              2 (text "Probable cause: you used mkName instead of newName to generate a binding.")
 
-  qAddCStub str = do
-      l <- getSrcSpanM
-      r <- case l of
-             UnhelpfulSpan _ -> pprPanic "qAddCStub: Unhelpful location" (ppr l)
-             RealSrcSpan s -> return s
-      let filename  = unpackFS (srcSpanFile r)
-          linePragma = "#line " ++ show (srcSpanStartLine r)
-                                ++ " " ++ show filename
-      th_cstubs_var <- fmap tcg_th_cstubs getGblEnv
-      updTcRef th_cstubs_var ([linePragma, str] ++)
+  qAddCFile = qAddFile tcg_th_cfiles
+  qAddCxxFile = qAddFile tcg_th_cxxfiles
+  qAddObjcFile = qAddFile tcg_th_objcfiles
+  qAddObjcxxFile = qAddFile tcg_th_objcxxfiles
 
   qAddModFinalizer fin = do
       r <- liftIO $ mkRemoteRef fin
@@ -941,6 +935,11 @@ instance TH.Quasi TcM where
   qExtsEnabled = do
     dflags <- hsc_dflags <$> getTopEnv
     return $ map toEnum $ IntSet.elems $ extensionFlags dflags
+
+qAddFile :: (TcGblEnv -> TcRef [String]) -> String -> TcM ()
+qAddFile get_var str = do
+    var <- fmap get_var getGblEnv
+    updTcRef var (str :)
 
 -- | Adds a mod finalizer reference to the local environment.
 addModFinalizerRef :: ForeignRef (TH.Q ()) -> TcM ()
@@ -1111,7 +1110,10 @@ handleTHMessage msg = case msg of
     hsc_env <- env_top <$> getEnv
     wrapTHResult $ liftIO (mkFinalizedHValue hsc_env r) >>= addModFinalizerRef
   AddTopDecls decs -> wrapTHResult $ TH.qAddTopDecls decs
-  AddCStub str -> wrapTHResult $ TH.qAddCStub str
+  AddCFile str -> wrapTHResult $ TH.qAddCFile str
+  AddCxxFile str -> wrapTHResult $ TH.qAddCxxFile str
+  AddObjcFile str -> wrapTHResult $ TH.qAddObjcFile str
+  AddObjcxxFile str -> wrapTHResult $ TH.qAddObjcxxFile str
   IsExtEnabled ext -> wrapTHResult $ TH.qIsExtEnabled ext
   ExtsEnabled -> wrapTHResult $ TH.qExtsEnabled
   _ -> panic ("handleTHMessage: unexpected message " ++ show msg)
